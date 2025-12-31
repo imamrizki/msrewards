@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Daily Rewards</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="box">
+        <label>
+            <input type="checkbox" id="auto-toggle"> Auto Mode
+        </label>
+
+        <h3>Keyword Search</h3>
+        <button id="btn-search">
+            Mulai Keyword
+            <span id="current-index-keyword">0</span> /
+            <span id="total-keyword">0</span>
+        </button>
+
+        <table id="table-keywords">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Keyword</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <button id="btn-generate-manual">Generate Keyword</button>
+    </div>
+
+    <div class="box">
+        <h3>Article Read</h3>
+        <button id="btn-search-article">
+            Mulai Artikel
+            <span id="current-index-article">0</span> /
+            <span id="total-article">0</span>
+        </button>
+
+        <table id="table-articles">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Artikel</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <button id="btn-generate-manual-article">Generate Artikel</button>
+    </div>
+
+    <script src="keywords_bank.js"></script>
+    <script src="news_bank.js"></script>
+    <script src="script.js"></script>
+</body>
+
+<!-- DEBUG PANEL -->
+<div id="debug-panel">
+  <div><strong>DEBUG PANEL</strong></div>
+  <div>Auto Mode: <span id="dbg-auto">-</span></div>
+  <div>Browser: <span id="dbg-browser">-</span></div>
+  <div>SEARCH_STEP: <span id="dbg-step">-</span></div>
+  <div>Idle (s): <span id="dbg-idle">-</span></div>
+  <div>Dwell Type: <span id="dbg-dwell-type">-</span></div>
+  <div>Scroll Depth: <span id="dbg-scroll">-</span>%</div>
+  <div>Dwell Time: <span id="dbg-dwell-time">-</span> ms</div>
+  <div>Keyword Tab: <span id="dbg-ktab">-</span></div>
+  <div>Article Tab: <span id="dbg-atab">-</span></div>
+</div>
+
+</html>
