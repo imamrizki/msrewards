@@ -166,16 +166,46 @@ function updateKeywordUI() {
 
   const tbody = document.querySelector("#table-keywords tbody");
   tbody.innerHTML = "";
-  keywordStatus.forEach((k, i) => {
+
+  const MAX_VISIBLE = 7;
+  const half = Math.floor(MAX_VISIBLE / 2);
+
+  let start = Math.max(0, keywordIndex - half);
+  let end = Math.min(keywordStatus.length, start + MAX_VISIBLE);
+
+  // adjust kalau di ujung
+  if (end - start < MAX_VISIBLE) {
+    start = Math.max(0, end - MAX_VISIBLE);
+  }
+
+  // indikator awal
+  if (start > 0) {
     tbody.innerHTML += `
       <tr>
+        <td colspan="3" style="text-align:center;">...</td>
+      </tr>`;
+  }
+
+  // render slice
+  for (let i = start; i < end; i++) {
+    const k = keywordStatus[i];
+    tbody.innerHTML += `
+      <tr ${i === keywordIndex ? 'style="background:#eef;"' : ''}>
         <td>${i + 1}</td>
         <td>${k.keyword}</td>
         <td class="${k.isOpened ? "opened" : "not-opened"}">
           ${k.isOpened ? "Sudah Dibuka" : "Belum Dibuka"}
         </td>
       </tr>`;
-  });
+  }
+
+  // indikator akhir
+  if (end < keywordStatus.length) {
+    tbody.innerHTML += `
+      <tr>
+        <td colspan="3" style="text-align:center;">...</td>
+      </tr>`;
+  }
 }
 updateKeywordUI();
 
