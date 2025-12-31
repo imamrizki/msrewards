@@ -9,52 +9,56 @@
 
 <body>
 
-    <div class="box">
-        <label>
-            <input type="checkbox" id="auto-toggle"> Auto Mode
-        </label>
-
-        <h3>Keyword Search</h3>
-        <button id="btn-search">
-            Mulai Keyword
-            <span id="current-index-keyword">0</span> /
-            <span id="total-keyword">0</span>
-        </button>
-
-        <table id="table-keywords">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Keyword</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-
-        <button id="btn-generate-manual">Generate Keyword</button>
-    </div>
-
-    <div class="box">
-        <h3>Article Read</h3>
-        <button id="btn-search-article">
-            Mulai Artikel
-            <span id="current-index-article">0</span> /
-            <span id="total-article">0</span>
-        </button>
-
-        <table id="table-articles">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Artikel</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-
-        <button id="btn-generate-manual-article">Generate Artikel</button>
+    <div class="wrapper">
+        <div class="box">
+            <label>
+                <input type="checkbox" id="auto-keyword-toggle">
+                Auto Keyword
+            </label>
+    
+            <h3>Keyword Search</h3>
+            <button id="btn-search">
+                Mulai Keyword
+                <span id="current-index-keyword">0</span> /
+                <span id="total-keyword">0</span>
+            </button>
+    
+            <table id="table-keywords">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Keyword</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    
+        <div class="box">
+            <label>
+                <input type="checkbox" id="auto-article-toggle">
+                Auto Article
+            </label>
+    
+            <h3>Article Read</h3>
+            <button id="btn-search-article">
+                Mulai Artikel
+                <span id="current-index-article">0</span> /
+                <span id="total-article">0</span>
+            </button>
+    
+            <table id="table-articles">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Artikel</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
     <script src="keywords_bank.js"></script>
