@@ -1,7 +1,7 @@
 /* ===============================
  * VERSION
  * =============================== */
-const VERSION = "5.2.0";
+const VERSION = "5.2.1";
 if (localStorage.getItem("VERSION") !== VERSION) {
   localStorage.clear();
   localStorage.setItem("VERSION", VERSION);
@@ -180,30 +180,39 @@ function runKeyword() {
 function generateRuleBasedKeywords(limit = 30) {
   const results = new Set();
 
+  const pick = arr => arr[randInt(0, arr.length - 1)];
+
   while (results.size < limit) {
-    const type = randInt(1, 3);
+    const pattern = randInt(1, 4);
     let keyword = "";
 
-    if (type === 1) {
-      keyword =
-        KEYWORD_RULES.subjects[randInt(0, KEYWORD_RULES.subjects.length - 1)];
+    switch (pattern) {
+      // Pattern A: subject + object
+      case 1:
+        keyword = `${pick(KEYWORD_RULES.subjects)} ${pick(KEYWORD_RULES.objects)}`;
+        break;
+
+      // Pattern B: verb + subject + object
+      case 2:
+        keyword = `${pick(KEYWORD_RULES.verbs)} ${pick(KEYWORD_RULES.subjects)} ${pick(KEYWORD_RULES.objects)}`;
+        break;
+
+      // Pattern C: subject + tech + object
+      case 3:
+        keyword = `${pick(KEYWORD_RULES.subjects)} ${pick(KEYWORD_RULES.tech)} ${pick(KEYWORD_RULES.objects)}`;
+        break;
+
+      // Pattern D: subject + daily / explanatory tail
+      case 4:
+        keyword = `${pick(KEYWORD_RULES.subjects)} ${pick(KEYWORD_RULES.daily)}`;
+        break;
     }
 
-    if (type === 2) {
-      keyword =
-        KEYWORD_RULES.subjects[randInt(0, KEYWORD_RULES.subjects.length - 1)] +
-        " " +
-        KEYWORD_RULES.objects[randInt(0, KEYWORD_RULES.objects.length - 1)];
-    }
+    keyword = keyword.replace(/\s+/g, " ").trim();
 
-    if (type === 3) {
-      keyword =
-        KEYWORD_RULES.verbs[randInt(0, KEYWORD_RULES.verbs.length - 1)] +
-        " " +
-        KEYWORD_RULES.tech[randInt(0, KEYWORD_RULES.tech.length - 1)];
-    }
+    if (keyword.length < 6) continue;
 
-    results.add(keyword.trim());
+    results.add(keyword);
   }
 
   return Array.from(results);
