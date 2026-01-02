@@ -1,7 +1,7 @@
 /* ===============================
  * VERSION
  * =============================== */
-const VERSION = "5.0.0";
+const VERSION = "5.2.0";
 if (localStorage.getItem("VERSION") !== VERSION) {
   localStorage.clear();
   localStorage.setItem("VERSION", VERSION);
@@ -19,6 +19,19 @@ let AUTO_ARTICLE = localStorage.getItem("AUTO_ARTICLE") === "true";
 let keywordTab = null;
 let articleTab = null;
 let SEARCH_STEP = Number(sessionStorage.getItem("SEARCH_STEP") || 0);
+let CURRENT_BING_FORM = sessionStorage.getItem("BING_FORM");
+let BATCH_COOLDOWN = false;
+
+/* ===============================
+ * GLOBAL CONFIG
+ * =============================== */
+const BING_FORM_POOL = [
+  "ANNTH1", // news / widget
+  "QBLH",   // bing homepage
+  "MSNVS",  // msn / feed
+  "QBRE",   // regular bing search
+  "EDGEAR"  // edge address bar
+];
 
 /* ===============================
  * UTIL
@@ -30,6 +43,42 @@ function randInt(min, max) {
 function isEdgeBrowser() {
   const ua = navigator.userAgent;
   return ua.includes("Edg/") && !ua.includes("OPR/") && !ua.includes("Brave");
+}
+
+function getRefig() {
+  let refig = sessionStorage.getItem("BING_REFIG");
+  if (!refig) {
+    refig = crypto.randomUUID().replace(/-/g, "");
+    sessionStorage.setItem("BING_REFIG", refig);
+  }
+  return refig;
+}
+
+function rotateBingForm() {
+  const form =
+    BING_FORM_POOL[randInt(0, BING_FORM_POOL.length - 1)];
+
+  CURRENT_BING_FORM = form;
+  sessionStorage.setItem("BING_FORM", form);
+
+  console.log("[FORM ROTATE]", form);
+}
+
+function applyMicroDelay(callback) {
+  const delay = randInt(150, 1200); // ms
+  setTimeout(callback, delay);
+}
+
+function applyBatchCooldown(callback) {
+  const delay = randInt(30000, 120000); // 30–120 detik
+
+  BATCH_COOLDOWN = true;
+  console.log(`[COOLDOWN] Batch pause ${delay / 1000}s`);
+
+  setTimeout(() => {
+    BATCH_COOLDOWN = false;
+    callback();
+  }, delay);
 }
 
 /* ===============================
@@ -89,43 +138,91 @@ function applyDwell(type, cb) {
  * EDGE SEARCH BUILDER
  * =============================== */
 function buildSearchUrl(keyword) {
-  let url;
+  const refig = getRefig();
 
-  if (!isEdgeBrowser() || SEARCH_STEP === 0) {
-    url = `https://www.bing.com/search?q=${encodeURIComponent(keyword)}&FORM=QBRE`;
-  } else {
-    url =
-      `https://www.bing.com/search?q=${encodeURIComponent(keyword)}` +
-      `&qs=SSE&sk=HS${randInt(1,15)}SSE${randInt(1,5)}` +
-      `&sc=${randInt(10,30)}-${randInt(0,2)}&FORM=QBRE`;
-  }
+  const form = CURRENT_BING_FORM || "ANNTH1";
 
-  SEARCH_STEP++;
-  sessionStorage.setItem("SEARCH_STEP", SEARCH_STEP);
-  return url;
+  return (
+    "https://www.bing.com/search" +
+    `?q=${encodeURIComponent(keyword)}` +
+    `&form=${form}` +
+    `&refig=${refig}` +
+    "&pc=U531"
+  );
 }
 
 /* ===============================
  * KEYWORD MODULE
  * =============================== */
 let keywordIndex = 0;
-let keywordStatus = keywords_bank.map(k => ({ keyword: k, isOpened: false }));
+let keywordStatus = [];
 let KEYWORD_LOCK = false;
 
 function runKeyword() {
   if (!AUTO_KEYWORD && event?.type !== "click") return;
   if (keywordIndex >= keywordStatus.length || KEYWORD_LOCK) return;
+  if (BATCH_COOLDOWN) return;
 
   KEYWORD_LOCK = true;
 
   applyDwell("keyword", () => {
-    const k = keywordStatus[keywordIndex];
-    k.isOpened = true;
-    openKeywordTab(buildSearchUrl(k.keyword));
-    keywordIndex++;
-    updateKeywordUI();
-    KEYWORD_LOCK = false;
+    applyMicroDelay(() => {
+      const k = keywordStatus[keywordIndex];
+      k.isOpened = true;
+      openKeywordTab(buildSearchUrl(k.keyword));
+      keywordIndex++;
+      updateKeywordUI();
+      KEYWORD_LOCK = false;
+    });
   });
+}
+
+function generateRuleBasedKeywords(limit = 30) {
+  const results = new Set();
+
+  while (results.size < limit) {
+    const type = randInt(1, 3);
+    let keyword = "";
+
+    if (type === 1) {
+      keyword =
+        KEYWORD_RULES.subjects[randInt(0, KEYWORD_RULES.subjects.length - 1)];
+    }
+
+    if (type === 2) {
+      keyword =
+        KEYWORD_RULES.subjects[randInt(0, KEYWORD_RULES.subjects.length - 1)] +
+        " " +
+        KEYWORD_RULES.objects[randInt(0, KEYWORD_RULES.objects.length - 1)];
+    }
+
+    if (type === 3) {
+      keyword =
+        KEYWORD_RULES.verbs[randInt(0, KEYWORD_RULES.verbs.length - 1)] +
+        " " +
+        KEYWORD_RULES.tech[randInt(0, KEYWORD_RULES.tech.length - 1)];
+    }
+
+    results.add(keyword.trim());
+  }
+
+  return Array.from(results);
+}
+
+function initKeywordModule(reset = true) {
+  if (reset) {
+    keywordIndex = 0;
+    rotateBingForm();
+  }
+
+  const generated = generateRuleBasedKeywords(25);
+
+  keywordStatus = generated.map(k => ({
+    keyword: k,
+    isOpened: false
+  }));
+
+  updateKeywordUI();
 }
 
 document.getElementById("btn-search").onclick = runKeyword;
@@ -144,12 +241,14 @@ function runArticle() {
   ARTICLE_LOCK = true;
 
   applyDwell("article", () => {
-    const a = articleStatus[articleIndex];
-    a.isOpened = true;
-    openArticleTab(`https://www.msn.com/${a.article}`);
-    articleIndex++;
-    updateArticleUI();
-    ARTICLE_LOCK = false;
+    applyMicroDelay(() => {
+      const a = articleStatus[articleIndex];
+      a.isOpened = true;
+      openArticleTab(`https://www.msn.com/${a.article}`);
+      articleIndex++;
+      updateArticleUI();
+      ARTICLE_LOCK = false;
+    });
   });
 }
 
@@ -237,3 +336,16 @@ setInterval(() => {
 setInterval(() => {
   if (AUTO_ARTICLE) runArticle();
 }, 4000);
+
+setInterval(() => {
+  if (keywordIndex >= keywordStatus.length && !BATCH_COOLDOWN) {
+    applyBatchCooldown(() => {
+      console.log("[ROTATE] Cooldown selesai, generate batch baru");
+      initKeywordModule(true);
+    });
+  }
+}, 5000);
+
+document.addEventListener("DOMContentLoaded", () => {
+  initKeywordModule(true);
+});
